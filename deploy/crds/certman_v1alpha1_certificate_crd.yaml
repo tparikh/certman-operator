@@ -1,0 +1,89 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  creationTimestamp: null
+  name: certificates.certman.managed.openshift.io
+spec:
+  group: certman.managed.openshift.io
+  names:
+    kind: Certificate
+    listKind: CertificateList
+    plural: certificates
+    singular: certificate
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        metadata:
+          type: object
+        spec:
+          type: object
+          properties:
+            baseDnsDomain:
+              description: Base DNS Domain
+              type: string
+            certSecretName:
+              description: CertSecretName is the name of the secret resource to store certificate secret in
+              type: string
+            awsSecretName:
+              description: AwsSecretName is the name of the secret resource that has AWS credentials.
+              type: string
+            dnsNames:
+              description: DNSNames is a list of subject alt names to be used on the Certificate.
+              items:
+                type: string
+              type: array
+            renewBefore:
+              description: Certificate renew before expiration duration
+              type: string
+            wildcard:
+              description: Request wildcard certificates.
+              type: boolean
+          required:
+          - certSecretName
+          - awsSecretName
+          - baseDnsDomain
+          - dnsNames
+        status:
+          type: object
+          properties:
+            notAfter:
+              description: The expiration time of the certificate stored in the secret named by this resource in spec.secretName.
+              format: date-time
+              type: string
+            notBefore:
+              description: The earliest time and date on which the certificate stored in the secret named by this resource in spec.secretName is valid.
+              format: date-time
+              type: string
+            issuerName:
+              description: The entity that verified the information and signed the certificate.
+              type: string
+            serialNumber:
+              description: The serial number of the certificate stored in the secret named by this resource in spec.secretName.
+              type: string
+            state:
+              description: State contains the current state of this resource.
+              enum:
+              - ""
+              - valid
+              - ready
+              - pending
+              - processing
+              - invalid
+              - expired
+              - errored
+              type: string
+            message:
+              description: Additional message related to the certificate stored in the secret named by this resource in spec.secretName.
+              type: string
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
