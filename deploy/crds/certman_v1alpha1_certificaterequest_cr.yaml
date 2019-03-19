@@ -1,0 +1,7 @@
+apiVersion: certman.managed.openshift.io/v1alpha1
+kind: CertificateRequest
+metadata:
+  name: example-certificaterequest
+spec:
+  # Add fields here
+  size: 3

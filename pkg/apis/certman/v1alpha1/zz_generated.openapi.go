@@ -13,17 +13,17 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/certman-operator/pkg/apis/certman/v1alpha1.Certificate":       schema_pkg_apis_certman_v1alpha1_Certificate(ref),
-		"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateSpec":   schema_pkg_apis_certman_v1alpha1_CertificateSpec(ref),
-		"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateStatus": schema_pkg_apis_certman_v1alpha1_CertificateStatus(ref),
+		"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequest":       schema_pkg_apis_certman_v1alpha1_CertificateRequest(ref),
+		"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestSpec":   schema_pkg_apis_certman_v1alpha1_CertificateRequestSpec(ref),
+		"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestStatus": schema_pkg_apis_certman_v1alpha1_CertificateRequestStatus(ref),
 	}
 }
 
-func schema_pkg_apis_certman_v1alpha1_Certificate(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_certman_v1alpha1_CertificateRequest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "Certificate is the Schema for the certificates API",
+				Description: "CertificateRequest is the Schema for the certificaterequests API",
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -46,39 +46,88 @@ func schema_pkg_apis_certman_v1alpha1_Certificate(ref common.ReferenceCallback) 
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateSpec"),
+							Ref: ref("github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateStatus"),
+							Ref: ref("github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateSpec", "github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestSpec", "github.com/certman-operator/pkg/apis/certman/v1alpha1.CertificateRequestStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
-func schema_pkg_apis_certman_v1alpha1_CertificateSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_certman_v1alpha1_CertificateRequestSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "CertificateSpec defines the desired state of Certificate",
-				Properties:  map[string]spec.Schema{},
+				Description: "CertificateRequestSpec defines the desired state of CertificateRequest",
+				Properties: map[string]spec.Schema{
+					"baseDomain": {
+						SchemaProps: spec.SchemaProps{
+							Description: "BaseDomain is the base domain to which the cluster should belong.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"certificateSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CertificateSecret is the reference to the secret where certificates are stored.",
+							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+						},
+					},
+					"awsSecrets": {
+						SchemaProps: spec.SchemaProps{
+							Description: "AwsSecrets refers to a secret that contains the AWS account access credentials.",
+							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
+						},
+					},
+					"wildcard": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Request wildcard certificates.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"renewBeforeDays": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Certificate renew before expiration duration in days.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"dnsNames": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DNSNames is a list of subject alt names to be used on the Certificate.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.LocalObjectReference"},
 	}
 }
 
-func schema_pkg_apis_certman_v1alpha1_CertificateStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_pkg_apis_certman_v1alpha1_CertificateRequestStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "CertificateStatus defines the observed state of Certificate",
+				Description: "CertificateRequestStatus defines the observed state of CertificateRequest",
 				Properties:  map[string]spec.Schema{},
 			},
 		},

@@ -42,5 +42,6 @@ rules:
   - certman.managed.openshift.io
   resources:
   - '*'
+  - certificaterequests
   verbs:
   - '*'
