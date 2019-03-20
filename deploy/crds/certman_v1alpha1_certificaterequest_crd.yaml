@@ -35,7 +35,8 @@ spec:
               type: array
             renewBeforeDays:
               description: Certificate renew before expiration duration in days.
-              type: int
+              format: int64
+              type: integer
             wildcard:
               description: Request wildcard certificates.
               type: boolean
@@ -83,13 +84,13 @@ spec:
                     type: string
                   status:
                     description: State contains the current state of this resource.
-                      enum:
-                      - ""
-                      - ready
-                      - processing
-                      - expired
-                      - errored
-                      type: string
+                    enum:
+                    - ""
+                    - ready
+                    - processing
+                    - expired
+                    - errored
+                    type: string
                   type:
                     description: type specifies the state of the operator's reconciliation
                       functionality.

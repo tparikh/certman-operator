@@ -1,7 +1,15 @@
 apiVersion: certman.managed.openshift.io/v1alpha1
 kind: CertificateRequest
 metadata:
-  name: example-certificaterequest
+  name: ex
 spec:
-  # Add fields here
-  size: 3
+  baseDnsDomain: example.openshift.com
+  dnsNames:
+    - cluster.example.openshift.com
+    - shard.cluster.openshiftapps.com
+  awsSecrets:
+    name: some-secret
+  certificateSecret:
+    name: some-other-secret-01
+  renewBeforeDays: 15
+  wildcard: true

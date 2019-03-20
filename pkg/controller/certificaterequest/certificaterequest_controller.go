@@ -2,6 +2,7 @@ package certificaterequest
 
 import (
 	"context"
+	"time"
 
 	certmanv1alpha1 "github.com/certman-operator/pkg/apis/certman/v1alpha1"
 
@@ -21,11 +22,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_certificaterequest")
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new CertificateRequest Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -54,10 +50,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner CertificateRequest
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &certmanv1alpha1.CertificateRequest{},
-	})
+	err = c.Watch(&source.Kind{Type: &certmanv1alpha1.CertificateRequest{}}, &handler.EnqueueRequestForObject{})
+
+	//	IsController: true,
+	//	OwnerType:    &certmanv1alpha1.CertificateRequest{},
+	//})
 	if err != nil {
 		return err
 	}
@@ -86,9 +83,11 @@ func (r *ReconcileCertificateRequest) Reconcile(request reconcile.Request) (reco
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling CertificateRequest")
 
-	// Fetch the CertificateRequest instance
-	instance := &certmanv1alpha1.CertificateRequest{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	// Fetch the CertificateRequest cr
+	cr := &certmanv1alpha1.CertificateRequest{}
+
+	err := r.client.Get(context.TODO(), request.NamespacedName, cr)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -100,20 +99,30 @@ func (r *ReconcileCertificateRequest) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	pod := newPodForCR(instance)
+	//cr1 := cr.DeepCopy()
+	//cr1.Status.SerialNumber = time.Now().String()
 
-	// Set CertificateRequest instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
+	//r.client.Status().Update(context.TODO(), cr1)
+
+	// Define a new Pod object
+	//pod := newPodForCR(cr)
+	certificateSecret := newSecretForCR(cr)
+
+	// Set CertificateRequest cr as the owner and controller
+	if err := controllerutil.SetControllerReference(cr, certificateSecret, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
 	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
+	found := &corev1.Secret{}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: certificateSecret.Name, Namespace: certificateSecret.Namespace}, found)
+
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+
+		reqLogger.Info("Creating a new Secret", "Secret.Namespace", certificateSecret.Namespace, "Secret.Name", certificateSecret.Name)
+
+		err = r.client.Create(context.TODO(), certificateSecret)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
@@ -125,29 +134,50 @@ func (r *ReconcileCertificateRequest) Reconcile(request reconcile.Request) (reco
 	}
 
 	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
-	return reconcile.Result{}, nil
+	reqLogger.Info("Skip reconcile: Secret already exists", "Secret.Namespace", found.Namespace, "Secret.Name", found.Name, "Key", string(found.Data["some-key"]))
+
+	reqLogger.Info(">>>>>>> " + found.Name)
+
+	return reconcile.Result{RequeueAfter: time.Second * 5}, nil
 }
 
 // newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *certmanv1alpha1.CertificateRequest) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &corev1.Pod{
+//func newPodForCR(cr *certmanv1alpha1.CertificateRequest) *corev1.Pod {
+//	labels := map[string]string{
+//		"app": cr.Name,
+//	}
+//	return &corev1.Pod{
+//		ObjectMeta: metav1.ObjectMeta{
+//			Name:      cr.Name + "-pod",
+//			Namespace: cr.Namespace,
+//			Labels:    labels,
+//		},
+//		Spec: corev1.PodSpec{
+//			Containers: []corev1.Container{
+//				{
+//					Name:    "busybox",
+//					Image:   "busybox",
+//					Command: []string{"sleep", "3600"},
+//				},
+//			},
+//		},
+//	}
+//}
+
+func newSecretForCR(cr *certmanv1alpha1.CertificateRequest) *corev1.Secret {
+
+	return &corev1.Secret{
+		Type: corev1.SecretTypeOpaque,
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
+			Name:      cr.Spec.CertificateSecret.Name,
 			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
+			Labels: map[string]string{
+				"certificate_request": cr.Name,
 			},
 		},
+		Data: map[string][]byte{
+			"some-key": []byte("data"),
+		},
 	}
+
 }

@@ -16,25 +16,47 @@ type CertificateRequestSpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// BaseDomain is the base domain to which the cluster should belong.
-	BaseDomain string `json:"baseDomain,omitempty"`
+	BaseDomain string `json:"baseDomain"`
 
 	// CertificateSecret is the reference to the secret where certificates are stored.
-	CertificateSecret corev1.LocalObjectReference `json:"certificateSecret,omitempty"`
+	CertificateSecret corev1.LocalObjectReference `json:"certificateSecret"`
 
 	// AwsSecrets refers to a secret that contains the AWS account access credentials.
-	AwsSecrets corev1.LocalObjectReference `json:"awsSecrets,omitempty"`
+	AwsSecrets corev1.LocalObjectReference `json:"awsSecrets"`
+
+	// DNSNames is a list of subject alt names to be used on the Certificate.
+	DnsNames []string `json:"dnsNames"`
 
 	// Request wildcard certificates.
 	// +optional
 	Wildcard bool `json:"wildcard,omitempty"`
 
 	// Certificate renew before expiration duration in days.
-	RenewBeforeDays int `json:"renewBeforeDays,omitempty"`
-
-	// DNSNames is a list of subject alt names to be used on the Certificate.
 	// +optional
-	DnsNames []string `json:"dnsNames,omitempty"`
+	RenewBeforeDays int `json:"renewBeforeDays"`
 }
+
+type CertificateRequestCondition struct {
+
+	// Type is the type of the condition.
+	Type CertificateRequestConditionType `json:"type"`
+	// Status is the status of the condition.
+	Status corev1.ConditionStatus `json:"status"`
+	// LastProbeTime is the last time we probed the condition.
+	// +optional
+	LastProbeTime metav1.Time `json:"lastProbeTime,omitempty"`
+	// LastTransitionTime is the last time the condition transitioned from one status to another.
+	// +optional
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Reason is a unique, one-word, CamelCase reason for the condition's last transition.
+	// +optional
+	Reason string `json:"reason,omitempty"`
+	// Message is a human-readable message indicating details about last transition.
+	// +optional
+	Message string `json:"message,omitempty"`
+}
+
+type CertificateRequestConditionType string
 
 // CertificateRequestStatus defines the observed state of CertificateRequest
 // +k8s:openapi-gen=true
@@ -42,6 +64,30 @@ type CertificateRequestStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	// +optional
+	NotAfter *metav1.Time `json:"notAfter,omitempty"`
+
+	// +optional
+	NotBefore *metav1.Time `json:"notBefore,omitempty"`
+
+	// +optional
+	IssuerName string `json:"issuerName,omitempty"`
+
+	// +optional
+	SerialNumber string `json:"serialNumber,omitempty"`
+
+	// Conditions includes more detailed status for the Certificate Request
+	// +optional
+	Conditions []CertificateRequestCondition `json:"conditions,omitempty"`
+
+	//TODO
+	// Add Aws & Cred Secret Refs
+	//AdminPasswordSecret corev1.LocalObjectReference `json:"adminPasswordSecret,omitempty"`
+
+	// +optional
+
+	// +optional
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
