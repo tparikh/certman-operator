@@ -107,7 +107,7 @@ func (in *CertificateRequestList) DeepCopyObject() runtime.Object {
 func (in *CertificateRequestSpec) DeepCopyInto(out *CertificateRequestSpec) {
 	*out = *in
 	out.CertificateSecret = in.CertificateSecret
-	out.AwsSecrets = in.AwsSecrets
+	out.AwsCredentials = in.AwsCredentials
 	if in.DnsNames != nil {
 		in, out := &in.DnsNames, &out.DnsNames
 		*out = make([]string, len(*in))

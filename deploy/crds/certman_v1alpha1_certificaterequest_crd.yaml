@@ -37,10 +37,7 @@ spec:
               description: Certificate renew before expiration duration in days.
               format: int64
               type: integer
-            wildcard:
-              description: Request wildcard certificates.
-              type: boolean
-            awsSecrets:
+            awsCredentials:
               description: Credentials refers to a secret that contains the AWS account access credentials.
               type: object
             certificateSecret:
@@ -54,6 +51,9 @@ spec:
         status:
           type: object
           properties:
+            issued:
+              description: Issued is true once certificates have been issued.
+              type: boolean
             notAfter:
               description: The expiration time of the certificate stored in the secret named by this resource in spec.secretName.
               format: date-time

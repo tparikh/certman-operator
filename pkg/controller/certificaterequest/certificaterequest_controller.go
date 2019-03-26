@@ -2,7 +2,6 @@ package certificaterequest
 
 import (
 	"context"
-	"time"
 
 	certmanv1alpha1 "github.com/certman-operator/pkg/apis/certman/v1alpha1"
 
@@ -99,11 +98,6 @@ func (r *ReconcileCertificateRequest) Reconcile(request reconcile.Request) (reco
 		return reconcile.Result{}, err
 	}
 
-	//cr1 := cr.DeepCopy()
-	//cr1.Status.SerialNumber = time.Now().String()
-
-	//r.client.Status().Update(context.TODO(), cr1)
-
 	// Define a new Pod object
 	//pod := newPodForCR(cr)
 	certificateSecret := newSecretForCR(cr)
@@ -136,9 +130,7 @@ func (r *ReconcileCertificateRequest) Reconcile(request reconcile.Request) (reco
 	// Pod already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Secret already exists", "Secret.Namespace", found.Namespace, "Secret.Name", found.Name, "Key", string(found.Data["some-key"]))
 
-	reqLogger.Info(">>>>>>> " + found.Name)
-
-	return reconcile.Result{RequeueAfter: time.Second * 5}, nil
+	return reconcile.Result{}, nil
 }
 
 // newPodForCR returns a busybox pod with the same name/namespace as the cr

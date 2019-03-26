@@ -19,17 +19,13 @@ type CertificateRequestSpec struct {
 	BaseDomain string `json:"baseDomain"`
 
 	// CertificateSecret is the reference to the secret where certificates are stored.
-	CertificateSecret corev1.LocalObjectReference `json:"certificateSecret"`
+	CertificateSecret corev1.ObjectReference `json:"certificateSecret"`
 
-	// AwsSecrets refers to a secret that contains the AWS account access credentials.
-	AwsSecrets corev1.LocalObjectReference `json:"awsSecrets"`
+	// AwsCredentials refers to a secret that contains the AWS account access credentials.
+	AwsCredentials corev1.ObjectReference `json:"awsCredentials"`
 
 	// DNSNames is a list of subject alt names to be used on the Certificate.
 	DnsNames []string `json:"dnsNames"`
-
-	// Request wildcard certificates.
-	// +optional
-	Wildcard bool `json:"wildcard,omitempty"`
 
 	// Certificate renew before expiration duration in days.
 	// +optional
@@ -64,6 +60,8 @@ type CertificateRequestStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+
+	Issued bool `json:"issued,omitempty"`
 
 	// +optional
 	NotAfter *metav1.Time `json:"notAfter,omitempty"`
